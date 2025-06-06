@@ -214,7 +214,7 @@ docker-compose down
 
 ## 7. Próximos Passos e Melhorias Futuras
 
-Embora a solução atual seja robusta e funcional, eu identifiquei vários pontos que poderiam ser aprimorados em futuras iterações para tornar o sistema ainda mais poderoso, escalável e amigável.
+Embora a solução atual seja robusta e funcional, alguns pontos que poderiam ser aprimorados em futuras iterações para tornar o sistema ainda mais poderoso, escalável e amigável.
 
 ### Execução de LLM Local (Self-Hosting)
 Como mencionei, a decisão de usar a API do Gemini foi um contorno para limitações de hardware. Uma melhoria significativa seria integrar um LLM de código aberto (como Llama 3, Mixtral ou Phi-3) para ser executado localmente dentro de um contêiner Docker.
