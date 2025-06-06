@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+PyMuPDF
+pymongo
+python-multipart
+pydantic
+python-dotenv
+pillow
+easyocr
+pdf2image
+transformers
+requests
+pytest
+httpx
+pytest-asyncio

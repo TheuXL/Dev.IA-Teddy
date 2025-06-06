@@ -1,0 +1,30 @@
+# Git
+.git/
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+
+# IDE folders
+.vscode/
+.idea/
+
+# Models directory - This is mounted as a volume, not copied into the image
+models/ 
