@@ -1,6 +1,6 @@
 # IA-Teddy
 
-Neste documento, vou explicar em primeira pessoa as decisões que tomei, a arquitetura que desenhei e como você pode executar, usar e testar esta aplicação.
+Vou explicar as decisões que tomei, a arquitetura que desenhei e como você pode executar, usar e testar esta aplicação.
 
 Infelizmente, devido a problemas no meu PC, não consegui executar o LLM localmente. Para contornar essa limitação, decidi utilizar a API do Gemini e assim conseguir completar o desafio. Anteriormente, eu estava utilizando o modelo zephyr-7b-beta.Q4_K_M.gguf localmente.
 
@@ -16,6 +16,7 @@ Remova o '#' da variável 'GEMINI_API_KEY=AIzaSyDwPGLA3aoeWn-kA3HU80pkmyL9mVWYB4
 4.  [Como Usar a Minha API](#4-como-usar-a-minha-api)
 5.  [Como Eu Garanto a Qualidade: Os Testes](#5-como-eu-garanto-a-qualidade-os-testes)
 6.  [Como Parar a Aplicação](#6-como-parar-a-aplicação)
+7.  [Próximos Passos e Melhorias Futuras](#7-próximos-passos-e-melhorias-futuras)
 
 ---
 
@@ -59,7 +60,7 @@ graph TD
 *   **`FastAPI (app/main.py)`**: Escolhi o FastAPI pela sua alta performance, tipagem de dados com Pydantic e, principalmente, pela sua capacidade de gerar documentação interativa (Swagger) automaticamente. Ele é o coração do meu projeto, recebendo as requisições e coordenando as tarefas.
 *   **`Módulo OCR (app/ocr.py)`**: Para extrair texto dos documentos, implementei um módulo que usa `easyocr` e `PyMuPDF`. A minha lógica primeiro tenta uma extração de texto nativa do PDF, que é mais rápida. Se isso não funcionar bem (em casos de PDFs escaneados), eu parto para o OCR, convertendo as páginas em imagens e extraindo o texto delas.
 *   **`Módulo LLM (app/llm.py)`**: Este módulo é a minha ponte para a inteligência artificial do Google. Decidi usar a API do Gemini em vez de um modelo local para tornar a aplicação mais leve e poderosa. O módulo é responsável por fazer a "engenharia de prompt", ou seja, montar a pergunta certa para o Gemini e garantir que a resposta venha no formato JSON que eu preciso.
-*   **`Módulo de Storage (app/storage.py)`**: Para a persistência dos dados de auditoria, escolhi o MongoDB por ser um banco NoSQL flexível e alinhado com a natureza de dados em JSON da aplicação. Este módulo gerencia a conexão e o salvamento dos logs.
+*   **`Módulo de Storage (app/storage.py)`**: Para a persistência dos dados de auditoria, escolhi o MongoDB. Sua natureza NoSQL e schema flexível são ideais para armazenar os outputs do LLM, que podem variar ou evoluir. Ele se alinha perfeitamente com a natureza de dados em JSON da aplicação. Este módulo gerencia a conexão e o salvamento dos logs.
 *   **`Docker (Dockerfile, docker-compose.yml)`**: Eu usei o Docker para empacotar tudo. Isso resolve o clássico "funciona na minha máquina", garantindo que qualquer pessoa com Docker possa rodar o projeto com um único comando, sem se preocupar com dependências.
 
 ---
@@ -208,3 +209,39 @@ Para parar e remover os contêineres que foram criados pelo Docker Compose, eu u
 ```bash
 docker-compose down
 ```
+
+---
+
+## 7. Próximos Passos e Melhorias Futuras
+
+Embora a solução atual seja robusta e funcional, eu identifiquei vários pontos que poderiam ser aprimorados em futuras iterações para tornar o sistema ainda mais poderoso, escalável e amigável.
+
+### Execução de LLM Local (Self-Hosting)
+Como mencionei, a decisão de usar a API do Gemini foi um contorno para limitações de hardware. Uma melhoria significativa seria integrar um LLM de código aberto (como Llama 3, Mixtral ou Phi-3) para ser executado localmente dentro de um contêiner Docker.
+*   **Benefícios**: Maior privacidade dos dados (os CVs não saem da sua infraestrutura), ausência de custos por chamada de API e controle total sobre o modelo.
+*   **Desafios**: Exigiria um ambiente com hardware mais robusto (especialmente GPU) e um gerenciamento mais complexo do ciclo de vida do modelo.
+
+### Frontend Interativo
+A interação via Swagger UI é ótima para desenvolvedores, mas um usuário final (como um recrutador) se beneficiaria de uma interface gráfica dedicada. Eu poderia construir um frontend simples com Streamlit ou um mais elaborado com React/Vue.js. Isso permitiria:
+*   Upload de arquivos com drag-and-drop.
+*   Visualização clara e formatada dos rankings e resumos.
+*   Filtros, ordenação e busca nos resultados.
+
+### Processamento Assíncrono em Larga Escala
+O endpoint `/analyze` atualmente processa os currículos em tempo real. Para um grande volume de documentos, isso pode levar a timeouts. A arquitetura ideal para isso seria:
+1.  O endpoint recebe os arquivos e os coloca em uma fila de tarefas (usando Celery com Redis ou RabbitMQ).
+2.  Retorna imediatamente um ID de tarefa para o cliente.
+3.  *Workers* em segundo plano consomem a fila, processam os CVs e salvam o resultado no banco de dados.
+4.  O cliente pode consultar o status da tarefa usando o ID.
+
+### Inteligência de OCR Avançada
+A extração de texto atual é eficaz, mas não entende a estrutura do documento. Eu poderia empregar modelos de `Document AI` (como o LayoutLM da Microsoft) para realizar uma análise de layout. Isso permitiria extrair informações de forma estruturada (ex: "seção de experiência", "lista de habilidades") antes mesmo de enviar ao LLM, resultando em prompts mais precisos e respostas de maior qualidade.
+
+### Cobertura de Testes Ampliada
+Atualmente, o projeto conta com testes de integração que validam o fluxo completo. Para aumentar a confiabilidade e facilitar a manutenção, eu adicionaria **testes unitários** para cada módulo (`ocr.py`, `llm.py`, `storage.py`). Isso permitiria testar a lógica de cada componente de forma isolada, capturando bugs mais cedo no ciclo de desenvolvimento.
+
+### Observabilidade e Monitoramento
+Para um ambiente de produção, é crucial entender o que está acontecendo sob o capô. Eu implementaria um stack de observabilidade, por exemplo:
+*   **Logs Estruturados**: Para facilitar a busca e análise.
+*   **Métricas com Prometheus**: Para monitorar a latência da API, taxa de erros, uso de recursos dos contêineres, etc.
+*   **Tracing com OpenTelemetry**: Para seguir uma requisição através de todos os microsserviços e identificar gargalos.
