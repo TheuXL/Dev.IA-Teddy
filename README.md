@@ -6,7 +6,7 @@ Infelizmente, devido a problemas no meu PC, não consegui executar o LLM localme
 
 Aqui está a documentação do Gemini: https://ai.google.dev/gemini-api/docs
 
-remora o '#'
+Remova o '#' da variável 'GEMINI_API_KEY=AIzaSyDwPGLA3aoeWn-kA3HU80pkmyL9mVWYB4o'. Esta API é exclusivamente destinada a este teste e não funcionará em outro contexto.
 
 ## Tabela de Conteúdos
 
